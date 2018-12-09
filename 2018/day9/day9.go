@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 const (
@@ -10,28 +11,36 @@ const (
 )
 
 type marble struct {
-	v    int
-	next *marble
-	prev *marble
+	next int
+	prev int
 }
+
+var marbles []marble
 
 func main() {
 	var (
-		current = &marble{0, nil, nil}
+		current = 0
 		scores  = make([]int, players+1)
 		c       = 1
 	)
-	current.next = current
-	current.prev = current
+	start := time.Now()
+	defer func() {
+		fmt.Printf("Done in %v\n", time.Since(start))
+	}()
+
+	marbles = make([]marble, last+1)
 	for {
 		for p := 1; p <= players; p++ {
 			if c%23 == 0 {
 				scores[p] += c
-				current = current.prev.prev.prev.prev.prev.prev
-				scores[p] += current.prev.v
-				remove(current.prev)
+				for i := 0; i < 6; i++ {
+					current = marbles[current].prev
+				}
+				scores[p] += marbles[current].prev
+				remove(marbles[current].prev)
 			} else {
-				current = insertAfter(current.next, c)
+				insertAfter(marbles[current].next, c)
+				current = c
 			}
 			c++
 			if c > last {
@@ -48,13 +57,14 @@ func main() {
 	}
 }
 
-func insertAfter(p *marble, v int) *marble {
-	m := &marble{v: v, prev: p, next: p.next}
-	p.next = m
-	m.next.prev = m
-	return m
+func insertAfter(p int, m int) {
+	marbles[m].prev = p
+	marbles[m].next = marbles[p].next
+	marbles[marbles[p].next].prev = m
+	marbles[p].next = m
 }
-func remove(m *marble) {
-	m.prev.next = m.next
-	m.next.prev = m.prev
+
+func remove(m int) {
+	marbles[marbles[m].prev].next = marbles[m].next
+	marbles[marbles[m].next].prev = marbles[m].prev
 }
