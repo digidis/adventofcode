@@ -58,10 +58,9 @@ func main() {
 }
 
 func insertAfter(p int, m int) {
+	marbles[m].next, marbles[p].next = marbles[p].next, m
 	marbles[m].prev = p
-	marbles[m].next = marbles[p].next
-	marbles[marbles[p].next].prev = m
-	marbles[p].next = m
+	marbles[marbles[m].next].prev = m
 }
 
 func remove(m int) {
